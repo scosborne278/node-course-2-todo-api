@@ -1,10 +1,10 @@
 //Library loads
 require('./config/config');
 
-var _ = require('lodash');
-var express = require('express');
-var bodyParser = require('body-parser');
-var {ObjectID} = require('mongodb');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 //Local file loads
 
@@ -94,6 +94,19 @@ app.patch('/todos/:id', (req, res) => {
         res.send({todo});
     }).catch((e) => {
         res.status(400).send();
+    });
+});
+
+app.post('/users', (req,res) => {
+    var body = _.pick(req.body, ['email','password']);
+    var user = new User(body);
+    
+    user.save().then(() =>{
+        return user.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth',token).send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
     });
 });
 
