@@ -5,7 +5,8 @@ const _ = require('lodash');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const {ObjectID} = require('mongodb');
+const socketIO = require('socket.io');
+const http = require('http');
 
 //Local file loads
 
@@ -13,16 +14,38 @@ var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 var {authenticate} = require('./middleware/authenticate');
+const {ObjectID} = require('mongodb');
 
 const publicPath = path.join(__dirname, '/../public');
 
 var app = express();
 const port = process.env.PORT;
 
+//Create Socket Connections
+
+var server = http.createServer(app);
+var io = socketIO(server);
+
 app.use(bodyParser.json());
+
+//Socket Connection Verifiers
+
+io.on('connection', (socket) => {
+    console.log('New User Connected');
+    socket.on('disconnecting', (socket) => {
+    console.log('User Disconnected');
+    });
+});
+
+//Socket event listeners
+
+//Start webpage
+
 app.use(express.static(publicPath));
 
-app.post('/todos', (req,res) => {
+//API Routes
+
+var postTodo = function (req, res) {app.post('/todos', (req,res) => {
     var todo = new Todo({
         text: req.body.text
     });
@@ -31,17 +54,19 @@ app.post('/todos', (req,res) => {
     }, (e) => {
         res.status(400).send(e);
     });
-});
+});};
+postTodo();
 
-app.get('/todos', (req,res) => {
+var getTodos = function (req, res) {app.get('/todos', (req,res) => {
     Todo.find().then((todos) => {
         res.send({todos});
     }, (e) => {
         res.status(400).send(e);
     });
-});
+});};
+getTodos();
 
-app.get('/todos/:id', (req, res) => {
+var getId = function (req, res) {app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -57,9 +82,10 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send();
     });
     
-});
+});};
+getId();
 
-app.delete('/todos/:id', (req, res) => {
+var deleteTodo = function (req, res) {app.delete('/todos/:id', (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -75,9 +101,10 @@ app.delete('/todos/:id', (req, res) => {
         res.status(400).send();
     });
     
-});
+});};
+deleteTodo();
 
-app.patch('/todos/:id', (req, res) => {
+var updateTodo = function (req, res) {app.patch('/todos/:id', (req, res) => {
     var id = req.params.id;
     var body = _.pick(req.body, ['text', 'completed']);
 
@@ -100,9 +127,11 @@ app.patch('/todos/:id', (req, res) => {
     }).catch((e) => {
         res.status(400).send();
     });
-});
+});};
+updateTodo();
 
-app.post('/users', (req,res) => {
+
+var createUser = function (req, res) {app.post('/users', (req,res) => {
     var body = _.pick(req.body, ['email','password']);
     var user = new User(body);
     
@@ -113,13 +142,15 @@ app.post('/users', (req,res) => {
     }).catch((e) => {
         res.status(400).send(e);
     });
-});
+});};
+createUser();
 
-app.get('/users/me', authenticate, (req, res) => {
+var getUser = function (req, res) {app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
-});
+});};
+getUser();
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log('Started on port ' + port);
 });
 
