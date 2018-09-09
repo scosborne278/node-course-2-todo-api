@@ -2,6 +2,7 @@
 require('./config/config');
 
 const _ = require('lodash');
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
@@ -13,10 +14,13 @@ var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 var {authenticate} = require('./middleware/authenticate');
 
+const publicPath = path.join(__dirname, '/../public');
+
 var app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+app.use(express.static(publicPath));
 
 app.post('/todos', (req,res) => {
     var todo = new Todo({
