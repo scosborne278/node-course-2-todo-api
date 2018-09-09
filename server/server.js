@@ -35,9 +35,26 @@ io.on('connection', (socket) => {
     socket.on('disconnecting', (socket) => {
     console.log('User Disconnected');
     });
-});
+
 
 //Socket event listeners
+
+socket.on('createMessage', (message, callback) => {
+    console.log('createMessage', message);
+    
+        var todo = new Todo({
+        text: message.text
+    });
+    todo.save().catch();
+        
+//        .then((doc) =>{
+//        callback.send(doc);
+//    }, (e) => {
+//        callback.status(400).send(e);
+//    });
+    
+  });
+});
 
 //Start webpage
 
